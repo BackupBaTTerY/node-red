@@ -11,6 +11,7 @@ Published day-ahead prices are used where available. Forecast values extend the 
 | **EPF summary** | Current price and CO2, cheapest/greenest/combined windows, quality measurements and access diagnostics |
 | **EPF prices** | Full price series for charts, thresholds and custom scheduling |
 | **EPF signal** | Two-output decision node for window states, thresholds, combined score and data freshness |
+| **EPF planner** | Locked N-of-X cheapest-hour plans and weekend EV-charging plans |
 
 The API key is optional and stored through Node-RED's credential system. It is never placed in `msg`, a URL or an exported flow.
 
@@ -43,6 +44,7 @@ Importable examples:
 
 - [`examples/basic-summary.json`](examples/basic-summary.json) — inspect the complete summary
 - [`examples/cheapest-window-control.json`](examples/cheapest-window-control.json) — route active and inactive cheapest-window states separately
+- [`examples/cheapest-hours-plan.json`](examples/cheapest-hours-plan.json) — select four individual cheap hours in each 24-hour block
 
 ## EPF summary
 
@@ -138,6 +140,38 @@ The complete price series is returned in `msg.payload.entries`. It supports:
 
 Hourly forecast values shown at 15-minute resolution are repeated across four slots and never interpolated. Every entry says whether it came from day-ahead data or a forecast and includes its native resolution.
 
+## EPF planner
+
+Connect **EPF prices → EPF planner** to select individual cheap clock hours:
+
+```text
+                   ┌─ active output   → allow consumer
+EPF prices → planner
+                   └─ inactive output → block consumer
+```
+
+Two plan types are available:
+
+- **Repeating N-of-X block** — for example, select the 12 cheapest individual hours in every fixed 24-hour block for a heat pump, or 24 hours in every 48-hour block for more flexibility.
+- **Weekend plan** — select charging hours from Friday or Saturday until Monday 00:00 local time.
+
+The node averages quarter-hour prices into real clock hours before ranking them. It uses the selected market's IANA time zone, so a block stays tied to local wall-clock time across daylight-saving changes.
+
+A plan is created only when the complete block is covered by the input price series. Once created, it is locked and later forecast updates cannot reshuffle a running schedule. The output includes:
+
+```javascript
+msg.energypriceforecast.plan.active
+msg.energypriceforecast.plan.activeUntil
+msg.energypriceforecast.plan.nextStart
+msg.energypriceforecast.plan.hours
+msg.energypriceforecast.plan.averageValue
+msg.energypriceforecast.plan.windowAverageValue
+msg.energypriceforecast.plan.savingPercent
+msg.energypriceforecast.plan.settled
+```
+
+Plans are stored in Node-RED context. Configure a persistent context store if locked plans must survive a Node-RED restart. If the current block is not fully covered, the planner emits an error for a `Catch` node instead of silently publishing a partial plan.
+
 ## Currency and household prices
 
 **Market default** chooses the normal currency for the selected market. A different supported currency can be selected explicitly.
@@ -176,13 +210,14 @@ For **EPF prices**, the additional overrides are `mode` (`mixed` or `forecast_on
 
 ## How this compares with Home Assistant and Homey
 
-The Node-RED package now covers the shared forecast and automation core: current values, continuous best windows, combined score, quality diagnostics, full price series, threshold conditions, data-freshness checks, secure credentials and local-currency selection.
+The Node-RED package covers the shared forecast and automation core: current values, continuous best windows, combined score, quality diagnostics, full price series, threshold conditions, data-freshness checks, locked N-of-X and weekend plans, secure credentials and local-currency selection.
 
 It deliberately does not pretend to provide every platform-specific feature:
 
 - Home Assistant entities, recorder behaviour and Lovelace attributes belong in the HACS integration.
 - Homey capabilities and Flow cards belong in the Homey app.
-- Locked “N cheapest individual hours in every X-hour block”, weekend EV plans, custom retail formulas and time-of-use grid charges are not yet native Node-RED nodes. They require persistent, DST-safe planning and must not reshuffle a running plan after every forecast update. The full price series is available for custom flows in the meantime.
+- Cleanest-individual-hour plans require a full CO2 series that the Node-RED endpoint does not yet expose.
+- Custom retail formulas and time-of-use grid charges remain explicit Function-node logic for now. The planner can already use the API's supported household-price estimates through **EPF prices**.
 
 ## Error handling
 

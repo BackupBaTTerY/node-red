@@ -25,7 +25,7 @@ test('requestOptions applies safe per-message summary overrides', () => {
         currency: 'SEK',
         priceMode: 'retail',
         postalCode: '1012',
-        userAgent: '@backupbattery/node-red-energypriceforecast/0.2.0',
+        userAgent: '@backupbattery/node-red-energypriceforecast/0.3.0',
         windowHours: 2,
     });
 });

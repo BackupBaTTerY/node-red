@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { fetchPrices, fetchSummary } = require('../lib/client');
+const { createPlan } = require('../lib/planner');
 
 async function main() {
     const common = {
@@ -9,7 +10,7 @@ async function main() {
         hours: 24,
         currency: 'SEK',
         priceMode: 'base',
-        userAgent: '@backupbattery/node-red-energypriceforecast-live-smoke/0.2.0',
+        userAgent: '@backupbattery/node-red-energypriceforecast-live-smoke/0.3.0',
     };
     const [summary, prices] = await Promise.all([
         fetchSummary({ ...common, windowHours: 4 }),
@@ -24,7 +25,14 @@ async function main() {
     assert.equal(prices.country, 'DE');
     assert.equal(prices.currency, 'SEK');
     assert.ok(Array.isArray(prices.entries) && prices.entries.length > 0);
-    process.stdout.write(`Live API OK: summary ${summary.country}, prices ${prices.entries.length} entries\n`);
+    const planStart = Date.parse(prices.entries[0].start);
+    const plan = createPlan(prices.entries, 4, {
+        startMs: planStart,
+        endMs: planStart + 24 * 3_600_000,
+        key: prices.entries[0].start,
+    });
+    assert.ok(plan && plan.hours.length === 4);
+    process.stdout.write(`Live API OK: summary ${summary.country}, prices ${prices.entries.length} entries, planner ${plan.hours.length} hours\n`);
 }
 
 main().catch((error) => {

@@ -4,11 +4,13 @@ const assert = require('node:assert/strict');
 const { after, afterEach, before, test } = require('node:test');
 const helper = require('node-red-node-test-helper');
 const configNode = require('../nodes/config');
+const plannerNode = require('../nodes/planner');
 const pricesNode = require('../nodes/prices');
 const signalNode = require('../nodes/signal');
 const summaryNode = require('../nodes/summary');
 
 const originalFetch = global.fetch;
+const originalDateNow = Date.now;
 
 function load(nodes, flow, credentials = {}) {
     return new Promise((resolve, reject) => {
@@ -24,6 +26,7 @@ before(() => new Promise((resolve) => helper.startServer(resolve)));
 
 afterEach(() => {
     global.fetch = originalFetch;
+    Date.now = originalDateNow;
     return helper.unload();
 });
 
@@ -116,4 +119,38 @@ test('signal node routes true and false states to separate outputs', async () =>
     const inactiveMessage = await inactive;
     assert.equal(inactiveMessage.energypriceforecast.signal.active, false);
     assert.equal(inactiveMessage.energypriceforecast.signal.changed, true);
+});
+
+test('planner node keeps the first complete plan locked across later updates', async () => {
+    const start = Date.parse('2026-09-28T00:00:00Z');
+    Date.now = () => start + 30 * 60_000;
+    const entries = (prices) => prices.flatMap((value, hour) => [0, 1, 2, 3].map((quarter) => ({
+        start: new Date(start + hour * 3_600_000 + quarter * 900_000).toISOString(),
+        end: new Date(start + hour * 3_600_000 + (quarter + 1) * 900_000).toISOString(),
+        value,
+        source: 'forecast',
+    })));
+
+    await load(plannerNode, [
+        {
+            id: 'planner', type: 'energypriceforecast-planner', planType: 'repeating',
+            selectedHours: 1, blockHours: 4, startDay: 1, startHour: 0,
+            timeZone: 'UTC', emitMode: 'every', wires: [['yes'], ['no']],
+        },
+        { id: 'yes', type: 'helper' },
+        { id: 'no', type: 'helper' },
+    ]);
+
+    const yes = helper.getNode('yes');
+    const first = waitForInput(yes);
+    helper.getNode('planner').receive({ payload: { country: 'DE', entries: entries([0.05, 0.10, 0.20, 0.30]) } });
+    const firstMessage = await first;
+    assert.equal(firstMessage.energypriceforecast.plan.active, true);
+    assert.equal(firstMessage.energypriceforecast.plan.hours[0].averageValue, 0.05);
+
+    const second = waitForInput(yes);
+    helper.getNode('planner').receive({ payload: { country: 'DE', entries: entries([0.90, 0.01, 0.20, 0.30]) } });
+    const secondMessage = await second;
+    assert.equal(secondMessage.energypriceforecast.plan.active, true);
+    assert.equal(secondMessage.energypriceforecast.plan.hours[0].averageValue, 0.05);
 });

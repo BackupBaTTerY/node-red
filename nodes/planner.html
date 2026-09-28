@@ -1,0 +1,97 @@
+<script type="text/javascript">
+    RED.nodes.registerType('energypriceforecast-planner', {
+        category: 'Energy Price Forecast',
+        color: '#8fb9d0',
+        defaults: {
+            name: { value: '' },
+            planType: { value: 'repeating', required: true },
+            selectedHours: { value: 4, required: true, validate: RED.validators.number() },
+            blockHours: { value: 24, required: true, validate: RED.validators.number() },
+            startDay: { value: 1, required: true, validate: RED.validators.number() },
+            startHour: { value: 0, required: true, validate: RED.validators.number() },
+            timeZone: { value: 'auto', required: true },
+            emitMode: { value: 'every', required: true },
+            emitInitial: { value: false },
+        },
+        inputs: 1,
+        outputs: 2,
+        outputLabels: ['planned hour active', 'planned hour inactive'],
+        icon: 'font-awesome/fa-calendar-check-o',
+        align: 'left',
+        label: function () {
+            return this.name || `EPF planner · ${this.selectedHours || 4} h`;
+        },
+        paletteLabel: 'EPF planner',
+        oneditprepare: function () {
+            const updateType = function () {
+                const weekend = $('#node-input-planType').val() === 'weekend';
+                $('#epf-planner-block-row').toggle(!weekend);
+                $('#epf-planner-day-help').text(weekend ? 'Friday (5) or Saturday (6)' : 'Monday (1) to Sunday (7), used as the repeating-block anchor');
+            };
+            const updateInitial = function () {
+                $('#epf-planner-initial-row').toggle($('#node-input-emitMode').val() === 'changes');
+            };
+            $('#node-input-planType').on('change', updateType);
+            $('#node-input-emitMode').on('change', updateInitial);
+            updateType();
+            updateInitial();
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="energypriceforecast-planner">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Optional">
+    </div>
+    <div class="form-row">
+        <label for="node-input-planType"><i class="fa fa-calendar"></i> Plan</label>
+        <select id="node-input-planType">
+            <option value="repeating">Repeating N-of-X block</option>
+            <option value="weekend">Weekend until Monday 00:00</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-selectedHours"><i class="fa fa-check"></i> Select</label>
+        <input type="number" id="node-input-selectedHours" min="1" max="120" step="1" style="width:90px;"> hours
+    </div>
+    <div class="form-row" id="epf-planner-block-row">
+        <label for="node-input-blockHours"><i class="fa fa-arrows-h"></i> Block</label>
+        <input type="number" id="node-input-blockHours" min="2" max="120" step="1" style="width:90px;"> hours
+    </div>
+    <div class="form-row">
+        <label for="node-input-startDay"><i class="fa fa-calendar-o"></i> Start day</label>
+        <input type="number" id="node-input-startDay" min="1" max="7" step="1" style="width:90px;">
+        <div class="form-tips" id="epf-planner-day-help"></div>
+    </div>
+    <div class="form-row">
+        <label for="node-input-startHour"><i class="fa fa-clock-o"></i> Start</label>
+        <input type="number" id="node-input-startHour" min="0" max="23" step="1" style="width:90px;"> local time
+    </div>
+    <div class="form-row">
+        <label for="node-input-timeZone"><i class="fa fa-globe"></i> Time zone</label>
+        <input type="text" id="node-input-timeZone" placeholder="auto or Europe/Berlin">
+    </div>
+    <div class="form-row">
+        <label for="node-input-emitMode"><i class="fa fa-send"></i> Emit</label>
+        <select id="node-input-emitMode">
+            <option value="every">On every input</option>
+            <option value="changes">Only when active state changes</option>
+        </select>
+    </div>
+    <div class="form-row" id="epf-planner-initial-row">
+        <label for="node-input-emitInitial"><i class="fa fa-play"></i> First input</label>
+        <input type="checkbox" id="node-input-emitInitial" style="display:inline-block; width:auto; vertical-align:top;">
+        <span>Emit the initial state</span>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="energypriceforecast-planner">
+    <p>Selects the N cheapest individual clock hours inside a fixed X-hour block, or inside a weekend window ending Monday at 00:00.</p>
+    <p>Connect an <b>EPF prices</b> node configured for a horizon that fully covers the planning block. Output 1 means a selected hour is active; output 2 means it is inactive.</p>
+    <p>A plan is locked the first time the complete block is available and is not reshuffled by later forecast updates. Plans are stored in Node-RED context. Configure a persistent context store if they must survive a Node-RED restart.</p>
+    <p>The node uses the electricity market's IANA time zone by default and keeps local block boundaries stable across daylight-saving changes.</p>
+    <h3>Output</h3>
+    <p>The complete plan is added to <code>msg.energypriceforecast.plan</code>, including <code>hours</code>, <code>active</code>, <code>activeUntil</code>, <code>nextStart</code>, average price and saving percentage.</p>
+    <p>If an active block is not fully covered, the node raises an error for a Catch node instead of publishing a partial plan.</p>
+</script>

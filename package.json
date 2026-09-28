@@ -1,6 +1,6 @@
 {
   "name": "@backupbattery/node-red-energypriceforecast",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Node-RED nodes for electricity price and CO2 forecasts from Energy Price Forecast EU",
   "keywords": [
     "node-red",
@@ -49,7 +49,8 @@
       "energypriceforecast-config": "nodes/config.js",
       "energypriceforecast-summary": "nodes/summary.js",
       "energypriceforecast-prices": "nodes/prices.js",
-      "energypriceforecast-signal": "nodes/signal.js"
+      "energypriceforecast-signal": "nodes/signal.js",
+      "energypriceforecast-planner": "nodes/planner.js"
     }
   },
   "devDependencies": {
