@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - node-version: 20
+            node-red-version: 4.1.10
+          - node-version: 22
+            node-red-version: 5.0.7
+          - node-version: 24
+            node-red-version: 5.0.7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - if: matrix.node-red-version != '5.0.7'
+        run: npm install --no-save node-red@${{ matrix.node-red-version }}
+      - run: npm test
+      - run: npm audit --omit=dev
+      - run: npm run pack:check

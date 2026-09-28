@@ -1,0 +1,61 @@
+{
+  "name": "@energypriceforecast/node-red",
+  "version": "0.1.0",
+  "description": "Node-RED nodes for electricity price and CO2 forecasts from Energy Price Forecast EU",
+  "keywords": [
+    "node-red",
+    "electricity-price",
+    "forecast",
+    "day-ahead",
+    "co2",
+    "dynamic-tariff",
+    "smart-home"
+  ],
+  "author": {
+    "name": "BackupBaTTerY",
+    "email": "StrompreisVorhersage@proton.me"
+  },
+  "license": "MIT",
+  "homepage": "https://energypriceforecast.eu/en/node-red-electricity-price-co2-forecast/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BackupBaTTerY/node-red.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BackupBaTTerY/node-red/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "examples/",
+    "lib/",
+    "nodes/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:live": "node test/live-smoke.js",
+    "pack:check": "npm pack --dry-run"
+  },
+  "node-red": {
+    "version": ">=4.0.0",
+    "nodes": {
+      "energypriceforecast-config": "nodes/config.js",
+      "energypriceforecast-summary": "nodes/summary.js",
+      "energypriceforecast-prices": "nodes/prices.js"
+    }
+  },
+  "devDependencies": {
+    "node-red": "5.0.7",
+    "node-red-node-test-helper": "^0.3.6"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
+  }
+}

@@ -1,0 +1,39 @@
+<script type="text/javascript">
+    RED.nodes.registerType('energypriceforecast-config', {
+        category: 'config',
+        defaults: {
+            name: { value: '' },
+            baseUrl: { value: 'https://api.energypriceforecast.eu', required: true },
+        },
+        credentials: {
+            apiKey: { type: 'password' },
+        },
+        label: function () {
+            return this.name || 'Energy Price Forecast EU';
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="energypriceforecast-config">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Energy Price Forecast EU">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API key</label>
+        <input type="password" id="node-config-input-apiKey" placeholder="Optional for public 48 h access">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-baseUrl"><i class="fa fa-globe"></i> API URL</label>
+        <input type="text" id="node-config-input-baseUrl">
+    </div>
+    <div class="form-tips">
+        The API key is optional and is stored in Node-RED's encrypted credential store. Do not put it in a Function node or message.
+    </div>
+</script>
+
+<script type="text/html" data-help-name="energypriceforecast-config">
+    <p>Shared connection for the Energy Price Forecast EU nodes.</p>
+    <p>Without an API key, the public access currently serves a horizon of up to 48 hours. An entitled key can unlock a longer horizon. The API reports the actual limit in <code>msg.payload.meta.allowed_horizon_hours</code>.</p>
+    <p>The API URL normally does not need to be changed. It exists for staging and local API development.</p>
+</script>

@@ -1,0 +1,99 @@
+<script type="text/javascript">
+    RED.nodes.registerType('energypriceforecast-prices', {
+        category: 'Energy Price Forecast',
+        color: '#f3b33d',
+        defaults: {
+            name: { value: '' },
+            connection: { value: '', type: 'energypriceforecast-config', required: true },
+            market: { value: 'DE', required: true },
+            hours: { value: 48, required: true, validate: RED.validators.number() },
+            mode: { value: 'mixed', required: true },
+            resolution: { value: '15m', required: true },
+            priceMode: { value: 'base', required: true },
+            postalCode: { value: '' },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'font-awesome/fa-line-chart',
+        align: 'left',
+        label: function () {
+            return this.name || `EPF prices · ${this.market || 'DE'}`;
+        },
+        paletteLabel: 'EPF prices',
+        oneditprepare: function () {
+            const updatePostalCode = function () {
+                $('#epf-prices-postal-code-row').toggle($('#node-input-priceMode').val() === 'retail');
+            };
+            $('#node-input-priceMode').on('change', updatePostalCode);
+            updatePostalCode();
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="energypriceforecast-prices">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Optional">
+    </div>
+    <div class="form-row">
+        <label for="node-input-connection"><i class="fa fa-key"></i> Connection</label>
+        <input type="text" id="node-input-connection">
+    </div>
+    <div class="form-row">
+        <label for="node-input-market"><i class="fa fa-map-marker"></i> Market</label>
+        <select id="node-input-market">
+            <option value="AT">AT</option><option value="BE">BE</option><option value="BG">BG</option>
+            <option value="CH">CH</option><option value="CZ">CZ</option><option value="DE">DE</option>
+            <option value="DK1">DK1</option><option value="DK2">DK2</option><option value="ES">ES</option>
+            <option value="FI">FI</option><option value="FR">FR</option><option value="GR">GR</option>
+            <option value="ITN">IT North</option><option value="IT_CNOR">IT Centre-North</option>
+            <option value="IT_CSUD">IT Centre-South</option><option value="IT_SUD">IT South</option>
+            <option value="IT_CALA">IT Calabria</option><option value="IT_SICI">IT Sicily</option>
+            <option value="IT_SARD">IT Sardinia</option><option value="NL">NL</option>
+            <option value="NO1">NO1</option><option value="NO2">NO2</option><option value="NO3">NO3</option>
+            <option value="NO4">NO4</option><option value="NO5">NO5</option><option value="PL">PL</option>
+            <option value="PT">PT</option><option value="RO">RO</option><option value="SE1">SE1</option>
+            <option value="SE2">SE2</option><option value="SE3">SE3</option><option value="SE4">SE4</option>
+            <option value="SK">SK</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-hours"><i class="fa fa-clock-o"></i> Horizon</label>
+        <input type="number" id="node-input-hours" min="1" max="168" style="width: 90px;"> hours
+    </div>
+    <div class="form-row">
+        <label for="node-input-mode"><i class="fa fa-code-fork"></i> Series</label>
+        <select id="node-input-mode">
+            <option value="mixed">Day-ahead + forecast</option>
+            <option value="forecast_only">Forecast only</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-resolution"><i class="fa fa-th"></i> Resolution</label>
+        <select id="node-input-resolution">
+            <option value="15m">15-minute slots</option>
+            <option value="native">Native source resolution</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-priceMode"><i class="fa fa-money"></i> Price</label>
+        <select id="node-input-priceMode">
+            <option value="base">Wholesale / base price</option>
+            <option value="retail">Estimated household price</option>
+        </select>
+    </div>
+    <div class="form-row" id="epf-prices-postal-code-row">
+        <label for="node-input-postalCode"><i class="fa fa-home"></i> Postal code</label>
+        <input type="text" id="node-input-postalCode" placeholder="Required for retail prices in Germany">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="energypriceforecast-prices">
+    <p>Gets the price series for charts, thresholds and custom scheduling logic.</p>
+    <h3>Input</h3>
+    <p>Any message triggers one request. Optional properties in <code>msg.epf</code> override the editor settings: <code>market</code>, <code>hours</code>, <code>mode</code>, <code>resolution</code>, <code>priceMode</code> and <code>postalCode</code>.</p>
+    <h3>Output</h3>
+    <p><code>msg.payload.entries</code> contains the complete series. <code>msg.energypriceforecast</code> provides <code>entryCount</code>, <code>seriesStart</code>, <code>seriesEnd</code>, horizon and API-key metadata.</p>
+    <p>With 15-minute resolution, hourly forecast values are repeated for four slots and are never interpolated. The response marks the native source resolution.</p>
+    <p>Request failures are sent to a Catch node. No stale success message is emitted.</p>
+</script>

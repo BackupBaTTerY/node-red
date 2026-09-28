@@ -1,0 +1,102 @@
+<script type="text/javascript">
+    RED.nodes.registerType('energypriceforecast-summary', {
+        category: 'Energy Price Forecast',
+        color: '#f3b33d',
+        defaults: {
+            name: { value: '' },
+            connection: { value: '', type: 'energypriceforecast-config', required: true },
+            market: { value: 'DE', required: true },
+            hours: { value: 48, required: true, validate: RED.validators.number() },
+            windowHours: { value: 4, required: true, validate: RED.validators.number() },
+            priceMode: { value: 'base', required: true },
+            postalCode: { value: '' },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'font-awesome/fa-bolt',
+        align: 'left',
+        label: function () {
+            return this.name || `EPF summary · ${this.market || 'DE'}`;
+        },
+        paletteLabel: 'EPF summary',
+        oneditprepare: function () {
+            const updatePostalCode = function () {
+                $('#epf-summary-postal-code-row').toggle($('#node-input-priceMode').val() === 'retail');
+            };
+            $('#node-input-priceMode').on('change', updatePostalCode);
+            updatePostalCode();
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="energypriceforecast-summary">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Optional">
+    </div>
+    <div class="form-row">
+        <label for="node-input-connection"><i class="fa fa-key"></i> Connection</label>
+        <input type="text" id="node-input-connection">
+    </div>
+    <div class="form-row">
+        <label for="node-input-market"><i class="fa fa-map-marker"></i> Market</label>
+        <select id="node-input-market">
+            <option value="AT">AT</option><option value="BE">BE</option><option value="BG">BG</option>
+            <option value="CH">CH</option><option value="CZ">CZ</option><option value="DE">DE</option>
+            <option value="DK1">DK1</option><option value="DK2">DK2</option><option value="ES">ES</option>
+            <option value="FI">FI</option><option value="FR">FR</option><option value="GR">GR</option>
+            <option value="ITN">IT North</option><option value="IT_CNOR">IT Centre-North</option>
+            <option value="IT_CSUD">IT Centre-South</option><option value="IT_SUD">IT South</option>
+            <option value="IT_CALA">IT Calabria</option><option value="IT_SICI">IT Sicily</option>
+            <option value="IT_SARD">IT Sardinia</option><option value="NL">NL</option>
+            <option value="NO1">NO1</option><option value="NO2">NO2</option><option value="NO3">NO3</option>
+            <option value="NO4">NO4</option><option value="NO5">NO5</option><option value="PL">PL</option>
+            <option value="PT">PT</option><option value="RO">RO</option><option value="SE1">SE1</option>
+            <option value="SE2">SE2</option><option value="SE3">SE3</option><option value="SE4">SE4</option>
+            <option value="SK">SK</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-hours"><i class="fa fa-clock-o"></i> Horizon</label>
+        <input type="number" id="node-input-hours" min="1" max="168" style="width: 90px;"> hours
+    </div>
+    <div class="form-row">
+        <label for="node-input-windowHours"><i class="fa fa-arrows-h"></i> Window</label>
+        <input type="number" id="node-input-windowHours" min="1" max="24" style="width: 90px;"> hours
+    </div>
+    <div class="form-row">
+        <label for="node-input-priceMode"><i class="fa fa-money"></i> Price</label>
+        <select id="node-input-priceMode">
+            <option value="base">Wholesale / base price</option>
+            <option value="retail">Estimated household price</option>
+        </select>
+    </div>
+    <div class="form-row" id="epf-summary-postal-code-row">
+        <label for="node-input-postalCode"><i class="fa fa-home"></i> Postal code</label>
+        <input type="text" id="node-input-postalCode" placeholder="Required for retail prices in Germany">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="energypriceforecast-summary">
+    <p>Gets the compact automation summary: current price and CO2 intensity, cheapest and greenest windows, combined score, forecast quality and access metadata.</p>
+    <h3>Input</h3>
+    <p>Any message triggers one request. Optional per-message settings in <code>msg.epf</code> override the editor settings:</p>
+    <pre>{
+  "market": "NL",
+  "hours": 72,
+  "windowHours": 3,
+  "priceMode": "retail",
+  "postalCode": "1012"
+}</pre>
+    <p>The API key and API URL cannot be overridden by a message.</p>
+    <h3>Output</h3>
+    <p><code>msg.payload</code> contains the complete API response. Frequently used values are also mapped to <code>msg.energypriceforecast</code>, including:</p>
+    <ul>
+        <li><code>currentPrice</code>, <code>currentPriceUnit</code>, <code>currentPriceSource</code></li>
+        <li><code>currentCo2GPerKwh</code></li>
+        <li><code>cheapestWindowStart</code>, <code>cheapestWindowEnd</code>, <code>isCheapestWindowNow</code></li>
+        <li><code>greenestWindowStart</code>, <code>isGreenestWindowNow</code></li>
+        <li><code>combinedScoreNow</code>, <code>apiKeyState</code>, <code>usedHorizonHours</code></li>
+    </ul>
+    <p>Request failures are sent to a Catch node. No stale success message is emitted.</p>
+</script>

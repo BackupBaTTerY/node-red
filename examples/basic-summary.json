@@ -1,0 +1,170 @@
+[
+  {
+    "id": "epf_example_tab",
+    "type": "tab",
+    "label": "Energy Price Forecast",
+    "disabled": false,
+    "info": "Fetch the automation summary and release a consumer only while the cheapest window is active."
+  },
+  {
+    "id": "epf_example_config",
+    "type": "energypriceforecast-config",
+    "name": "Energy Price Forecast EU",
+    "baseUrl": "https://api.energypriceforecast.eu"
+  },
+  {
+    "id": "epf_example_inject",
+    "type": "inject",
+    "z": "epf_example_tab",
+    "name": "Every 30 minutes",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "1800",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 160,
+    "y": 120,
+    "wires": [
+      [
+        "epf_example_summary"
+      ]
+    ]
+  },
+  {
+    "id": "epf_example_summary",
+    "type": "energypriceforecast-summary",
+    "z": "epf_example_tab",
+    "name": "German 4-hour window",
+    "connection": "epf_example_config",
+    "market": "DE",
+    "hours": 48,
+    "windowHours": 4,
+    "priceMode": "base",
+    "postalCode": "",
+    "x": 410,
+    "y": 120,
+    "wires": [
+      [
+        "epf_example_switch",
+        "epf_example_debug"
+      ]
+    ]
+  },
+  {
+    "id": "epf_example_switch",
+    "type": "switch",
+    "z": "epf_example_tab",
+    "name": "Cheapest window active?",
+    "property": "energypriceforecast.isCheapestWindowNow",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "true"
+      },
+      {
+        "t": "false"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 690,
+    "y": 100,
+    "wires": [
+      [
+        "epf_example_on"
+      ],
+      [
+        "epf_example_off"
+      ]
+    ]
+  },
+  {
+    "id": "epf_example_on",
+    "type": "debug",
+    "z": "epf_example_tab",
+    "name": "Consumer ON",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "energypriceforecast",
+    "targetType": "msg",
+    "x": 940,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "epf_example_off",
+    "type": "debug",
+    "z": "epf_example_tab",
+    "name": "Consumer OFF",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "energypriceforecast",
+    "targetType": "msg",
+    "x": 940,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "epf_example_debug",
+    "type": "debug",
+    "z": "epf_example_tab",
+    "name": "Complete API response",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 700,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "epf_example_catch",
+    "type": "catch",
+    "z": "epf_example_tab",
+    "name": "EPF errors",
+    "scope": [
+      "epf_example_summary"
+    ],
+    "uncaught": false,
+    "x": 170,
+    "y": 200,
+    "wires": [
+      [
+        "epf_example_error"
+      ]
+    ]
+  },
+  {
+    "id": "epf_example_error",
+    "type": "debug",
+    "z": "epf_example_tab",
+    "name": "Request failed",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "x": 400,
+    "y": 200,
+    "wires": []
+  }
+]
