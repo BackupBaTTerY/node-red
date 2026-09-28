@@ -9,6 +9,7 @@
             hours: { value: 48, required: true, validate: RED.validators.number() },
             mode: { value: 'mixed', required: true },
             resolution: { value: '15m', required: true },
+            currency: { value: 'auto', required: true },
             priceMode: { value: 'base', required: true },
             postalCode: { value: '' },
         },
@@ -76,6 +77,14 @@
         </select>
     </div>
     <div class="form-row">
+        <label for="node-input-currency"><i class="fa fa-exchange"></i> Currency</label>
+        <select id="node-input-currency">
+            <option value="auto">Market default</option>
+            <option value="EUR">EUR</option><option value="DKK">DKK</option><option value="NOK">NOK</option>
+            <option value="CZK">CZK</option><option value="PLN">PLN</option><option value="SEK">SEK</option>
+        </select>
+    </div>
+    <div class="form-row">
         <label for="node-input-priceMode"><i class="fa fa-money"></i> Price</label>
         <select id="node-input-priceMode">
             <option value="base">Wholesale / base price</option>
@@ -91,7 +100,7 @@
 <script type="text/html" data-help-name="energypriceforecast-prices">
     <p>Gets the price series for charts, thresholds and custom scheduling logic.</p>
     <h3>Input</h3>
-    <p>Any message triggers one request. Optional properties in <code>msg.epf</code> override the editor settings: <code>market</code>, <code>hours</code>, <code>mode</code>, <code>resolution</code>, <code>priceMode</code> and <code>postalCode</code>.</p>
+    <p>Any message triggers one request. Optional properties in <code>msg.epf</code> override the editor settings: <code>market</code>, <code>hours</code>, <code>mode</code>, <code>resolution</code>, <code>currency</code>, <code>priceMode</code> and <code>postalCode</code>.</p>
     <h3>Output</h3>
     <p><code>msg.payload.entries</code> contains the complete series. <code>msg.energypriceforecast</code> provides <code>entryCount</code>, <code>seriesStart</code>, <code>seriesEnd</code>, horizon and API-key metadata.</p>
     <p>With 15-minute resolution, hourly forecast values are repeated for four slots and are never interpolated. The response marks the native source resolution.</p>

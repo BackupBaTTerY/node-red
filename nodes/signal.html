@@ -1,0 +1,102 @@
+<script type="text/javascript">
+    RED.nodes.registerType('energypriceforecast-signal', {
+        category: 'Energy Price Forecast',
+        color: '#66b6a4',
+        defaults: {
+            name: { value: '' },
+            rule: { value: 'cheapest_window_active', required: true },
+            threshold: { value: '' },
+            emitMode: { value: 'every', required: true },
+            emitInitial: { value: false },
+        },
+        inputs: 1,
+        outputs: 2,
+        outputLabels: ['true', 'false'],
+        icon: 'font-awesome/fa-random',
+        align: 'left',
+        label: function () {
+            return this.name || `EPF signal · ${String(this.rule || '').replaceAll('_', ' ')}`;
+        },
+        paletteLabel: 'EPF signal',
+        oneditprepare: function () {
+            const thresholdDefaults = {
+                price_below: 0.10,
+                price_above: 0.30,
+                co2_below: 200,
+                co2_above: 500,
+                combined_score_at_least: 80,
+                data_current: 75,
+            };
+            const updateThreshold = function () {
+                const rule = $('#node-input-rule').val();
+                const visible = Object.prototype.hasOwnProperty.call(thresholdDefaults, rule);
+                $('#epf-signal-threshold-row').toggle(visible);
+                if (visible && $('#node-input-threshold').val() === '') {
+                    $('#node-input-threshold').val(thresholdDefaults[rule]);
+                }
+            };
+            const updateInitial = function () {
+                $('#epf-signal-initial-row').toggle($('#node-input-emitMode').val() === 'changes');
+            };
+            $('#node-input-rule').on('change', updateThreshold);
+            $('#node-input-emitMode').on('change', updateInitial);
+            updateThreshold();
+            updateInitial();
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="energypriceforecast-signal">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Optional">
+    </div>
+    <div class="form-row">
+        <label for="node-input-rule"><i class="fa fa-check-square-o"></i> Signal</label>
+        <select id="node-input-rule">
+            <option value="cheapest_window_active">Cheapest window is active</option>
+            <option value="greenest_window_active">Greenest window is active</option>
+            <option value="combined_window_active">Combined window is active</option>
+            <option value="price_below">Current price is below</option>
+            <option value="price_above">Current price is above</option>
+            <option value="co2_below">Current CO2 is below</option>
+            <option value="co2_above">Current CO2 is above</option>
+            <option value="combined_score_at_least">Combined score is at least</option>
+            <option value="data_current">Data age is at most</option>
+        </select>
+    </div>
+    <div class="form-row" id="epf-signal-threshold-row">
+        <label for="node-input-threshold"><i class="fa fa-sliders"></i> Threshold</label>
+        <input type="number" id="node-input-threshold" step="any" style="width: 120px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-emitMode"><i class="fa fa-send"></i> Emit</label>
+        <select id="node-input-emitMode">
+            <option value="every">On every input</option>
+            <option value="changes">Only when state changes</option>
+        </select>
+    </div>
+    <div class="form-row" id="epf-signal-initial-row">
+        <label for="node-input-emitInitial"><i class="fa fa-play"></i> First input</label>
+        <input type="checkbox" id="node-input-emitInitial" style="display:inline-block; width:auto; vertical-align:top;">
+        <span>Emit the initial state</span>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="energypriceforecast-signal">
+    <p>Turns an <b>EPF summary</b> message into an automation-ready Boolean route.</p>
+    <p>The first output receives messages when the selected condition is true. The second output receives messages when it is false. The original API response remains in <code>msg.payload</code>.</p>
+    <h3>Signal metadata</h3>
+    <p>The evaluated result is added to <code>msg.energypriceforecast.signal</code>:</p>
+    <pre>{
+  "rule": "combined_score_at_least",
+  "active": true,
+  "value": 86,
+  "threshold": 80,
+  "previous": false,
+  "changed": true,
+  "evaluatedAt": "..."
+}</pre>
+    <p><b>Only when state changes</b> is useful for start/stop events. By default, its first input establishes the state without firing an event; enable <b>Emit the initial state</b> if downstream devices must be synchronized immediately after a deploy.</p>
+    <p>Invalid or incomplete input is sent to a Catch node instead of guessing a state.</p>
+</script>

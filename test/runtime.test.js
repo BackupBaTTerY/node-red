@@ -12,9 +12,9 @@ const connection = {
 test('requestOptions applies safe per-message summary overrides', () => {
     const options = requestOptions(
         'summary',
-        { market: 'DE', hours: 48, windowHours: 4, priceMode: 'base', postalCode: '' },
+        { market: 'DE', hours: 48, windowHours: 4, currency: 'auto', priceMode: 'base', postalCode: '' },
         connection,
-        { epf: { market: 'nl', hours: 72, windowHours: 2, priceMode: 'retail', postalCode: '1012' } },
+        { epf: { market: 'nl', hours: 72, windowHours: 2, currency: 'sek', priceMode: 'retail', postalCode: '1012' } },
     );
 
     assert.deepEqual(options, {
@@ -22,9 +22,10 @@ test('requestOptions applies safe per-message summary overrides', () => {
         baseUrl: 'https://api.example.test',
         market: 'NL',
         hours: 72,
+        currency: 'SEK',
         priceMode: 'retail',
         postalCode: '1012',
-        userAgent: '@backupbattery/node-red-energypriceforecast/0.1.0',
+        userAgent: '@backupbattery/node-red-energypriceforecast/0.2.0',
         windowHours: 2,
     });
 });
@@ -64,6 +65,31 @@ test('summaryMetadata exposes stable convenience fields without discarding zero 
     assert.equal(metadata.isCheapestWindowNow, false);
     assert.equal(metadata.combinedScoreNow, 0);
     assert.equal(metadata.usedHorizonHours, 24);
+});
+
+test('summaryMetadata exposes complete window and quality blocks', () => {
+    const quality = { available: true, hit_rate_percent: 75 };
+    const metadata = summaryMetadata({
+        flat: {
+            cheapest_window_avg_price: 0.11,
+            greenest_window_avg_co2_g_kwh: 123,
+            greenest_window_remaining_minutes: 45,
+            combined_window_start: '2026-09-28T10:00:00Z',
+            combined_window_end: '2026-09-28T12:00:00Z',
+            combined_window_score: 88,
+        },
+        forecast_quality: quality,
+        hourly_accuracy: { available: true },
+        cheaper_day_decision: { available: false },
+        assumptions: { available: true },
+    });
+
+    assert.equal(metadata.cheapestWindowAveragePrice, 0.11);
+    assert.equal(metadata.greenestWindowAverageCo2GPerKwh, 123);
+    assert.equal(metadata.greenestWindowRemainingMinutes, 45);
+    assert.equal(metadata.combinedWindowScore, 88);
+    assert.equal(metadata.forecastQuality, quality);
+    assert.deepEqual(metadata.assumptions, { available: true });
 });
 
 test('pricesMetadata describes the returned series', () => {

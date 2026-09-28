@@ -1,0 +1,97 @@
+[
+  {
+    "id": "epf_control_tab",
+    "type": "tab",
+    "label": "EPF cheapest-window control",
+    "disabled": false,
+    "info": "Poll the summary and route active/inactive cheapest-window states separately."
+  },
+  {
+    "id": "epf_control_connection",
+    "type": "energypriceforecast-config",
+    "name": "Energy Price Forecast EU",
+    "baseUrl": "https://api.energypriceforecast.eu"
+  },
+  {
+    "id": "epf_control_inject",
+    "type": "inject",
+    "z": "epf_control_tab",
+    "name": "Every 15 minutes",
+    "props": [
+      { "p": "payload" }
+    ],
+    "repeat": "900",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 160,
+    "y": 100,
+    "wires": [["epf_control_summary"]]
+  },
+  {
+    "id": "epf_control_summary",
+    "type": "energypriceforecast-summary",
+    "z": "epf_control_tab",
+    "name": "DE · 4-hour window",
+    "connection": "epf_control_connection",
+    "market": "DE",
+    "hours": 48,
+    "windowHours": 4,
+    "currency": "auto",
+    "priceMode": "base",
+    "postalCode": "",
+    "x": 410,
+    "y": 100,
+    "wires": [["epf_control_signal"]]
+  },
+  {
+    "id": "epf_control_signal",
+    "type": "energypriceforecast-signal",
+    "z": "epf_control_tab",
+    "name": "Cheapest window active?",
+    "rule": "cheapest_window_active",
+    "threshold": "",
+    "emitMode": "every",
+    "emitInitial": false,
+    "x": 670,
+    "y": 100,
+    "wires": [["epf_control_on"], ["epf_control_off"]]
+  },
+  {
+    "id": "epf_control_on",
+    "type": "debug",
+    "z": "epf_control_tab",
+    "name": "TRUE · allow consumer",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "energypriceforecast.signal",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 940,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "epf_control_off",
+    "type": "debug",
+    "z": "epf_control_tab",
+    "name": "FALSE · block consumer",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "energypriceforecast.signal",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 940,
+    "y": 130,
+    "wires": []
+  }
+]

@@ -5,6 +5,7 @@ const { after, afterEach, before, test } = require('node:test');
 const helper = require('node-red-node-test-helper');
 const configNode = require('../nodes/config');
 const pricesNode = require('../nodes/prices');
+const signalNode = require('../nodes/signal');
 const summaryNode = require('../nodes/summary');
 
 const originalFetch = global.fetch;
@@ -90,4 +91,29 @@ test('prices node returns no message after an HTTP error', async () => {
 
     assert.match(call.args[0].message, /HTTP 503: Temporary failure/);
     assert.equal(successCount, 0);
+});
+
+test('signal node routes true and false states to separate outputs', async () => {
+    await load(signalNode, [
+        {
+            id: 'signal', type: 'energypriceforecast-signal', rule: 'price_below',
+            threshold: 0.10, emitMode: 'every', wires: [['yes'], ['no']],
+        },
+        { id: 'yes', type: 'helper' },
+        { id: 'no', type: 'helper' },
+    ]);
+
+    const yes = helper.getNode('yes');
+    const no = helper.getNode('no');
+    const active = waitForInput(yes);
+    helper.getNode('signal').receive({ payload: { flat: { current_price: 0.05 } } });
+    const activeMessage = await active;
+    assert.equal(activeMessage.energypriceforecast.signal.active, true);
+    assert.equal(activeMessage.energypriceforecast.signal.threshold, 0.10);
+
+    const inactive = waitForInput(no);
+    helper.getNode('signal').receive({ payload: { flat: { current_price: 0.25 } } });
+    const inactiveMessage = await inactive;
+    assert.equal(inactiveMessage.energypriceforecast.signal.active, false);
+    assert.equal(inactiveMessage.energypriceforecast.signal.changed, true);
 });

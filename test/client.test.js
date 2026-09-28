@@ -32,6 +32,7 @@ test('fetchSummary builds the Node-RED URL and keeps the key in the Authorizatio
         market: 'DE',
         hours: 72,
         windowHours: 3,
+        currency: 'SEK',
         priceMode: 'retail',
         postalCode: '10115',
     });
@@ -41,6 +42,7 @@ test('fetchSummary builds the Node-RED URL and keeps the key in the Authorizatio
     assert.equal(request.url.searchParams.get('hours'), '72');
     assert.equal(request.url.searchParams.get('summary_hours'), '72');
     assert.equal(request.url.searchParams.get('window_hours'), '3');
+    assert.equal(request.url.searchParams.get('currency'), 'SEK');
     assert.equal(request.url.searchParams.get('price_mode'), 'retail');
     assert.equal(request.url.searchParams.get('plz'), '10115');
     assert.equal(request.url.searchParams.has('apiKey'), false);
@@ -60,6 +62,7 @@ test('fetchPrices omits retail fields in base mode', async () => {
         hours: 48,
         mode: 'mixed',
         resolution: '15m',
+        currency: 'auto',
         priceMode: 'base',
     });
 
@@ -67,6 +70,7 @@ test('fetchPrices omits retail fields in base mode', async () => {
     assert.equal(requestUrl.searchParams.get('country'), 'no2');
     assert.equal(requestUrl.searchParams.get('mode'), 'mixed');
     assert.equal(requestUrl.searchParams.get('resolution'), '15m');
+    assert.equal(requestUrl.searchParams.has('currency'), false);
     assert.equal(requestUrl.searchParams.has('price_mode'), false);
     assert.equal(requestUrl.searchParams.has('plz'), false);
 });

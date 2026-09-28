@@ -8,6 +8,7 @@
             market: { value: 'DE', required: true },
             hours: { value: 48, required: true, validate: RED.validators.number() },
             windowHours: { value: 4, required: true, validate: RED.validators.number() },
+            currency: { value: 'auto', required: true },
             priceMode: { value: 'base', required: true },
             postalCode: { value: '' },
         },
@@ -65,6 +66,14 @@
         <input type="number" id="node-input-windowHours" min="1" max="24" style="width: 90px;"> hours
     </div>
     <div class="form-row">
+        <label for="node-input-currency"><i class="fa fa-exchange"></i> Currency</label>
+        <select id="node-input-currency">
+            <option value="auto">Market default</option>
+            <option value="EUR">EUR</option><option value="DKK">DKK</option><option value="NOK">NOK</option>
+            <option value="CZK">CZK</option><option value="PLN">PLN</option><option value="SEK">SEK</option>
+        </select>
+    </div>
+    <div class="form-row">
         <label for="node-input-priceMode"><i class="fa fa-money"></i> Price</label>
         <select id="node-input-priceMode">
             <option value="base">Wholesale / base price</option>
@@ -85,6 +94,7 @@
   "market": "NL",
   "hours": 72,
   "windowHours": 3,
+  "currency": "EUR",
   "priceMode": "retail",
   "postalCode": "1012"
 }</pre>
@@ -96,7 +106,9 @@
         <li><code>currentCo2GPerKwh</code></li>
         <li><code>cheapestWindowStart</code>, <code>cheapestWindowEnd</code>, <code>isCheapestWindowNow</code></li>
         <li><code>greenestWindowStart</code>, <code>isGreenestWindowNow</code></li>
-        <li><code>combinedScoreNow</code>, <code>apiKeyState</code>, <code>usedHorizonHours</code></li>
+        <li><code>combinedWindowStart</code>, <code>combinedWindowEnd</code>, <code>combinedScoreNow</code></li>
+        <li><code>forecastQuality</code>, <code>hourlyAccuracy</code>, <code>cheaperDayDecision</code></li>
+        <li><code>apiKeyState</code>, <code>allowedHorizonHours</code>, <code>usedHorizonHours</code></li>
     </ul>
     <p>Request failures are sent to a Catch node. No stale success message is emitted.</p>
 </script>
