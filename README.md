@@ -44,7 +44,7 @@ Hourly forecast values shown at 15-minute resolution are repeated across four sl
 After publication, install the package from **Manage palette → Install**, or in the Node-RED user directory:
 
 ```shell
-npm install @energypriceforecast/node-red
+npm install @backupbattery/node-red-energypriceforecast
 ```
 
 For local development, install this directory instead:

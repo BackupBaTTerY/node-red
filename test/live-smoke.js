@@ -8,7 +8,7 @@ async function main() {
         market: 'DE',
         hours: 24,
         priceMode: 'base',
-        userAgent: '@energypriceforecast/node-red-live-smoke/0.1.0',
+        userAgent: '@backupbattery/node-red-energypriceforecast-live-smoke/0.1.0',
     };
     const [summary, prices] = await Promise.all([
         fetchSummary({ ...common, windowHours: 4 }),

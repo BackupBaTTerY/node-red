@@ -24,7 +24,7 @@ test('requestOptions applies safe per-message summary overrides', () => {
         hours: 72,
         priceMode: 'retail',
         postalCode: '1012',
-        userAgent: '@energypriceforecast/node-red/0.1.0',
+        userAgent: '@backupbattery/node-red-energypriceforecast/0.1.0',
         windowHours: 2,
     });
 });

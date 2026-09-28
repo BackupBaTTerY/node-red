@@ -1,5 +1,5 @@
 {
-  "name": "@energypriceforecast/node-red",
+  "name": "@backupbattery/node-red-energypriceforecast",
   "version": "0.1.0",
   "description": "Node-RED nodes for electricity price and CO2 forecasts from Energy Price Forecast EU",
   "keywords": [
