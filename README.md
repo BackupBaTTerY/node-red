@@ -6,6 +6,15 @@ Published day-ahead prices are used where available. Forecast values extend the 
 
 ## What is included
 
+### Great Britain (GB, beta)
+
+Select **GB** and **Market default** (GBP), or choose GBP explicitly. API values
+are in `GBP/kWh`: `0.10` means 10 p/kWh, not 0.10 p/kWh. The source is hourly
+wholesale data, not your exact half-hourly Agile bill. Quarter-hour output only
+repeats hourly values; it does not create measured half-hour prices. There is no
+GB household-price estimate, and quality measurements need an archived sample
+before they become available. Missing quality is not a zero error.
+
 | Node | Purpose |
 | --- | --- |
 | **EPF summary** | Current price and CO2, cheapest/greenest/combined windows, quality measurements and access diagnostics |
@@ -136,7 +145,7 @@ The complete price series is returned in `msg.payload.entries`. It supports:
 - forecast-only mode
 - native or unified 15-minute resolution
 - market prices or an available household-price estimate
-- EUR, DKK, NOK, CZK, PLN and SEK where supported by the API
+- EUR, GBP, DKK, NOK, CZK, PLN and SEK where supported by the API
 
 Hourly forecast values shown at 15-minute resolution are repeated across four slots and never interpolated. Every entry says whether it came from day-ahead data or a forecast and includes its native resolution.
 
